@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="Microsoft.AspNetCore.OData">
+        <HintPath>..\..\..\.nuget\packages\microsoft.aspnetcore.odata\9.3.2\lib\net8.0\Microsoft.AspNetCore.OData.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
