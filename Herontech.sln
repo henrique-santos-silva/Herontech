@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Herontech.Infrastructure", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Herontech.Contracts", "Herontech.Contracts\Herontech.Contracts.csproj", "{833529FB-708E-4791-A93F-30845BE24D99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriStateNullable", "TriStateNullable\TriStateNullable.csproj", "{F40D90F0-0B83-468F-8E40-9FB733EE4CF9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{833529FB-708E-4791-A93F-30845BE24D99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{833529FB-708E-4791-A93F-30845BE24D99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{833529FB-708E-4791-A93F-30845BE24D99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F40D90F0-0B83-468F-8E40-9FB733EE4CF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F40D90F0-0B83-468F-8E40-9FB733EE4CF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F40D90F0-0B83-468F-8E40-9FB733EE4CF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F40D90F0-0B83-468F-8E40-9FB733EE4CF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
