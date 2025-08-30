@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.OData.Deltas;
-using Microsoft.AspNetCore.OData.Deltas;
-using Microsoft.AspNetCore.OData.Formatter;
-
 namespace Herontech.Domain;
 
 public class BaseEntity
