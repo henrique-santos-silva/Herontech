@@ -18,12 +18,12 @@ public sealed class MeasurementUnitsController(AppDbContext db) : ODataControlle
     
     [EnableQuery(PageSize = 50)]
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
-    public IQueryable<MeasurementUnit> Get() => db.MeasurementUnits.AsNoTracking();
+    public IQueryable<MeasurementUnit> Get() => db.Set<MeasurementUnit>().AsNoTracking();
 
     [EnableQuery]
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
     public SingleResult<MeasurementUnit> Get([FromRoute] Guid key) => SingleResult.Create(
-        db.MeasurementUnits.AsNoTracking().Where(c => c.Id == key)
+        db.Set<MeasurementUnit>().AsNoTracking().Where(c => c.Id == key)
     );
 
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
@@ -31,7 +31,7 @@ public sealed class MeasurementUnitsController(AppDbContext db) : ODataControlle
     {
         if (input is null) return BadRequest();
         input.BaseEntityDefaults();
-        db.MeasurementUnits.Add(input);
+        db.Set<MeasurementUnit>().Add(input);
         await db.SaveChangesAsync(ct);
         return Created(input);
     }
@@ -50,5 +50,16 @@ public sealed class MeasurementUnitsController(AppDbContext db) : ODataControlle
         
         await db.SaveChangesAsync(ct);
         return Updated(entity);
+    }
+    
+    [Authorize(Policy = AuthorizationPolicies.SysAdminOnly)]
+    public async Task<IActionResult> Delete([FromRoute] Guid key, CancellationToken ct)
+    {
+        var entity = await db.Set<MeasurementUnit>().FirstOrDefaultAsync(p => p.Id == key, ct);
+        if (entity is null) return NotFound();
+
+        db.Set<MeasurementUnit>().Remove(entity);
+        await db.SaveChangesAsync(ct);
+        return NoContent();
     }
 }

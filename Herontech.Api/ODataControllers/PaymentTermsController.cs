@@ -12,32 +12,36 @@ using Microsoft.EntityFrameworkCore;
 namespace Herontech.Api.ODataControllers;
 
 [Route("odata/[controller]")]
-public sealed class ProductCategoriesController(AppDbContext db) : ODataController
+public sealed class PaymentTermsController(AppDbContext db) : ODataController
 {
+    public AppDbContext Db => db;
+    
     [EnableQuery(PageSize = 50)]
-    public IQueryable<ProductCategory> Get()
-        => db.Set<ProductCategory>().AsNoTracking();
+    [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
+    public IQueryable<PaymentTerm> Get() => db.Set<PaymentTerm>().AsNoTracking();
 
     [EnableQuery]
-    public SingleResult<ProductCategory> Get([FromRoute] Guid key)
-        => SingleResult.Create(db.Set<ProductCategory>().AsNoTracking().Where(x => x.Id == key));
-    
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
-    public async Task<IActionResult> Post([FromBody] ProductCategory input, CancellationToken ct)
+    public SingleResult<PaymentTerm> Get([FromRoute] Guid key) => SingleResult.Create(
+        db.Set<PaymentTerm>().AsNoTracking().Where(c => c.Id == key)
+    );
+
+    [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
+    public async Task<IActionResult> Post([FromBody] PaymentTerm input, CancellationToken ct)
     {
         if (input is null) return BadRequest();
         input.BaseEntityDefaults();
-        db.Set<ProductCategory>().Add(input);
+        db.Set<PaymentTerm>().Add(input);
         await db.SaveChangesAsync(ct);
         return Created(input);
     }
     
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
-    public async Task<IActionResult> Patch([FromRoute] Guid key, [FromBody] Delta<ProductCategory> delta, CancellationToken ct)
+    public async Task<IActionResult> Patch([FromRoute] Guid key, [FromBody] Delta<PaymentTerm> delta, CancellationToken ct)
     {
         if (delta is null) return BadRequest();
 
-        var entity = await db.Set<ProductCategory>().FirstOrDefaultAsync(p => p.Id == key, ct);
+        var entity = await db.Set<PaymentTerm>().FirstOrDefaultAsync(p => p.Id == key, ct);
         if (entity is null) return NotFound();
 
         var backup = entity.BackupBaseEntity();
@@ -51,10 +55,10 @@ public sealed class ProductCategoriesController(AppDbContext db) : ODataControll
     [Authorize(Policy = AuthorizationPolicies.SysAdminOnly)]
     public async Task<IActionResult> Delete([FromRoute] Guid key, CancellationToken ct)
     {
-        var entity = await db.Set<ProductCategory>().FirstOrDefaultAsync(p => p.Id == key, ct);
+        var entity = await db.Set<PaymentTerm>().FirstOrDefaultAsync(p => p.Id == key, ct);
         if (entity is null) return NotFound();
 
-        db.Set<ProductCategory>().Remove(entity);
+        db.Set<PaymentTerm>().Remove(entity);
         await db.SaveChangesAsync(ct);
         return NoContent();
     }

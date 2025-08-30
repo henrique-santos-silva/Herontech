@@ -25,7 +25,7 @@ public sealed class RefreshTokenService(AppDbContext db, IConfiguration cfg) : I
             UserAgent = userAgent
         };
 
-        db.RefreshTokens.Add(entity);
+        db.Set<RefreshToken>().Add(entity);
         await db.SaveChangesAsync(ct);
         return (entity, raw);
     }
@@ -49,7 +49,7 @@ public sealed class RefreshTokenService(AppDbContext db, IConfiguration cfg) : I
         };
         current.ReplacedByTokenId = next.Id;
 
-        db.RefreshTokens.Add(next);
+        db.Set<RefreshToken>().Add(next);
         await db.SaveChangesAsync(ct);
         return (next, raw);
     }
@@ -57,7 +57,7 @@ public sealed class RefreshTokenService(AppDbContext db, IConfiguration cfg) : I
     public async Task RevokeFamilyAsync(RefreshToken anyTokenInFamily, CancellationToken ct)
     {
         // Estratégia simples: revogar todos os tokens ativos do usuário
-        await db.RefreshTokens
+        await db.Set<RefreshToken>()
             .Where(t => t.UserId == anyTokenInFamily.UserId && t.RevokedAt == null && t.ExpiresAt > DateTimeOffset.UtcNow)
             .ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAt, DateTimeOffset.UtcNow), ct);
     }

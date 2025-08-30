@@ -18,13 +18,13 @@ public sealed class ProductsController(AppDbContext db) : ODataController
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
 
     public IQueryable<Product> Get()
-        => db.Products.AsNoTracking();
+        => db.Set<Product>().AsNoTracking();
 
     [EnableQuery]
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
     public SingleResult<Product> Get([FromRoute] Guid key)
         => SingleResult.Create(
-            db.Products.AsNoTracking().Where(p => p.Id == key)
+            db.Set<Product>().AsNoTracking().Where(p => p.Id == key)
         );
     
     [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
@@ -39,10 +39,10 @@ public sealed class ProductsController(AppDbContext db) : ODataController
         input.CreatorId = default;
         input.LastUpdaterId = default;
         
-        bool exists = await db.ProductCategories.AnyAsync(c => c.Id == input.ParentProductCategoryId, ct);
+        bool exists = await db.Set<ProductCategory>().AnyAsync(c => c.Id == input.ParentProductCategoryId, ct);
         if (!exists) return BadRequest("Categoria inválida.");
         
-        db.Products.Add(input);
+        db.Set<Product>().Add(input);
         await db.SaveChangesAsync(ct);
         return Created(input);
     }
@@ -52,7 +52,7 @@ public sealed class ProductsController(AppDbContext db) : ODataController
     {
         if (delta is null) return BadRequest();
 
-        var entity = await db.Products.FirstOrDefaultAsync(p => p.Id == key, ct);
+        var entity = await db.Set<Product>().FirstOrDefaultAsync(p => p.Id == key, ct);
         if (entity is null) return NotFound();
         var backup = entity.BackupBaseEntity();
         delta.Patch(entity);
@@ -61,7 +61,7 @@ public sealed class ProductsController(AppDbContext db) : ODataController
         // valida categoria se veio no patch
         if (delta.TryGetPropertyValue(nameof(Product.ParentProductCategoryId), out var catObj) && catObj is Guid catId)
         {
-            bool exists = await db.ProductCategories.AnyAsync(c => c.Id == catId, ct);
+            bool exists = await db.Set<ProductCategory>().AnyAsync(c => c.Id == catId, ct);
             if (!exists) return BadRequest("Categoria inválida.");
         }
 
@@ -72,10 +72,10 @@ public sealed class ProductsController(AppDbContext db) : ODataController
     [Authorize(Policy = AuthorizationPolicies.SysAdminOnly)]
     public async Task<IActionResult> Delete([FromRoute] Guid key, CancellationToken ct)
     {
-        var entity = await db.Products.FirstOrDefaultAsync(p => p.Id == key, ct);
+        var entity = await db.Set<Product>().FirstOrDefaultAsync(p => p.Id == key, ct);
         if (entity is null) return NotFound();
 
-        db.Products.Remove(entity);
+        db.Set<Product>().Remove(entity);
         await db.SaveChangesAsync(ct);
         return NoContent();
     }

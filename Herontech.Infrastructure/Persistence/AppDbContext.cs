@@ -13,18 +13,7 @@ public sealed class AppDbContext(
 
     ) : DbContext(options)
 {
-
-    public DbSet<User> Users => Set<User>();
-    public DbSet<Client> Clients => Set<Client>();
-    public DbSet<Contact> Contacts => Set<Contact>();
-    public DbSet<ClientContactRelationship> ClientContactRelationships => Set<ClientContactRelationship>();
     
-    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
-    public DbSet<MeasurementUnit> MeasurementUnits => Set<MeasurementUnit>();
-    public DbSet<Product> Products => Set<Product>();
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-
-
     public override int SaveChanges()
     {
         UpdateBaseModelInfo();
@@ -39,6 +28,17 @@ public sealed class AppDbContext(
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        
+        b.Entity<RefreshToken>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.TokenHash).HasMaxLength(32).IsFixedLength().IsRequired();
+            e.Property(x => x.CreatedByIp).HasMaxLength(64);
+            e.Property(x => x.UserAgent).HasMaxLength(256);
+            e.HasIndex(x => new { x.UserId, x.ExpiresAt });
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
         b.Entity<User>(e => {
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.Email).IsUnique();
@@ -48,8 +48,7 @@ public sealed class AppDbContext(
             e.Property(x => x.PassWordSalt).HasMaxLength(16).IsFixedLength();
         });
 
-        b.Entity<Client>(e =>
-        {
+        b.Entity<Client>(e => {
             e.HasKey(x => x.Id);
 
             e.Property(x => x.Type)
@@ -60,12 +59,12 @@ public sealed class AppDbContext(
                 .HasMaxLength(14)
                 .IsRequired();
 
-            e.Property(x => x.FirstName)
-                .HasMaxLength(30)
+            e.Property(x => x.Name)
+                .HasMaxLength(50)
                 .IsRequired();
 
-            e.Property(x => x.LastName)
-                .HasMaxLength(50);
+            e.Property(x => x.LegalName)
+                .HasMaxLength(100);
 
             e.Property(x => x.Email)
                 .HasMaxLength(120);
@@ -92,19 +91,19 @@ public sealed class AppDbContext(
                 .OnDelete(DeleteBehavior.Restrict);
         });
         
-        b.Entity<Contact>(e =>
-        {
+        b.Entity<Contact>(e => {
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.PersonalEmail).IsUnique();
             e.Property(x => x.PersonalEmail).HasMaxLength(50);
+            e.HasIndex(x => x.Register).IsUnique();
+            e.Property(x => x.Register).HasMaxLength(11).IsFixedLength();
             e.HasMany(x => x.ClientContactRelationships)
                 .WithOne(x => x.Contact)
                 .HasForeignKey(x => x.ContactId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        b.Entity<ProductCategory>(e =>
-        {
+        b.Entity<ProductCategory>(e => {
             e.HasKey(x => x.Id);
             
             e
@@ -114,8 +113,7 @@ public sealed class AppDbContext(
                 .OnDelete(DeleteBehavior.Restrict);
         });
         
-        b.Entity<Product>(e =>
-        {
+        b.Entity<Product>(e => {
             e.HasKey(x => x.Id);
             
             e
@@ -130,48 +128,53 @@ public sealed class AppDbContext(
                 .IsRequired();
         });
 
-        b.Entity<Quote>(e =>
-        {
+        b.Entity<Quote>(e => {
             e.HasKey(x => x.Id);
             e.HasIndex(x => x.QuoteNumber).IsUnique();
+            
+            e.HasOne(x => x.Client)
+                .WithMany(x => x.Quotes)
+                .HasForeignKey(x => x.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            e.HasOne(x => x.Contact)
+                .WithMany()
+                .HasForeignKey(x => x.ContactId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        b.Entity<QuoteRevision>(e =>
-        {
+        b.Entity<QuoteRevision>(e => {
             e.HasKey(x => x.Id);
             e.HasOne(x => x.Quote)
                 .WithMany(x => x.QuoteRevisions)
                 .HasForeignKey(x => x.QuoteId)
                 .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.PaymentTerm).WithMany()
+                .HasForeignKey(x => x.PaymentTermId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         });
 
-        b.Entity<QuoteProduct>(e =>
-        {
+        b.Entity<QuoteItem>(e => {
+            e.HasKey(x => x.Id);
+            e.HasOne(x => x.QuoteRevision)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.QuoteRevisionId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        b.Entity<QuoteProduct>(e => {
             e.HasKey(x => x.Id);
             e.HasOne(x => x.Product)
                 .WithMany()
                 .HasForeignKey(x => x.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
-            e.HasOne(x => x.QuoteRevision)
-                .WithMany(x => x.Products)
-                .HasForeignKey(x => x.QuoteRevisionId)
+            e.HasOne(x => x.QuoteItem)
+                .WithMany(x => x.QuoteProducts)
+                .HasForeignKey(x => x.QuoteItemId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
         
-        
-        
-        
-        b.Entity<RefreshToken>(e =>
-        {
-            e.HasKey(x => x.Id);
-            e.Property(x => x.TokenHash).HasMaxLength(32).IsFixedLength().IsRequired();
-            e.Property(x => x.CreatedByIp).HasMaxLength(64);
-            e.Property(x => x.UserAgent).HasMaxLength(256);
-            e.HasIndex(x => new { x.UserId, x.ExpiresAt });
-            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
         
         // RELAÇÃO CREATOR PARA TODAS AS ENTIDADES QUE HERDAM BaseModel
         foreach (IMutableEntityType et in b.Model.GetEntityTypes()

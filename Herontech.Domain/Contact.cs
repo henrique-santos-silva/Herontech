@@ -3,19 +3,18 @@ namespace Herontech.Domain;
 
 public enum ClientType
 {
-    CompanyHeadQuarters,
-    CompanyBranch,
+    Company,
     Person
 }
 
 public sealed class Client : BaseEntity
 {
-    public ClientType Type { get; set; } = ClientType.CompanyHeadQuarters;
+    public ClientType Type { get; set; } = ClientType.Company;
     
     public string Register {get; set;} = default!;
     
-    public string FirstName { get; set; } = default!;
-    public string? LastName { get; set; }
+    public string Name { get; set; } = default!;
+    public string? LegalName { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
     
@@ -25,6 +24,8 @@ public sealed class Client : BaseEntity
     public IEnumerable<Client> CompanyBranches { get; set; } = default!;
     
     public IEnumerable<ClientContactRelationship> ClientContactRelationships { get; set; } = default!;
+    
+    public IEnumerable<Quote> Quotes { get; set; } = default!;
     
 }
 

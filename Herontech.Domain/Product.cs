@@ -7,9 +7,11 @@ public sealed class Product : BaseEntity
     
     public Guid MeasurementUnitId { get; set; } = default!;
     public MeasurementUnit MeasurementUnit { get; set; } = default!;
-    public string UnitPrice   { get; set; } = default!;
+    public decimal UnitPrice   { get; set; } = default!;
     public Guid ParentProductCategoryId { get; set; } = default!;
     public ProductCategory ParentProductCategory { get; set; } = default!;
+    
+    public bool IsActive { get; set; } = true;
 }
 
 

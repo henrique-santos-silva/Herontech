@@ -39,7 +39,21 @@ builder.Services.AddJwtConfig(builder.Configuration);
 builder.Services.AddAuthorizationPolicies();
 
 builder.Services.AddCors(opt => {
-    opt.AddPolicy("Public", p => p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+    string? originDev  = builder.Configuration["Cors:Frontend:Dev"];
+    string? originProd = builder.Configuration["Cors:Frontend:Prod"];
+
+    opt.AddPolicy("Frontend", p =>
+    {
+        string[] origins = new[] { originDev, originProd }
+            .Where(o => !string.IsNullOrWhiteSpace(o))
+            .Select(x => x!)
+            .ToArray();
+
+        p.WithOrigins(origins)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
 });
 builder.Services.AddRateLimiter(opt => {
     opt.AddFixedWindowLimiter("fixed", o => {
@@ -72,11 +86,13 @@ builder.Services
 builder.Services.AddAuthorization();
 
 WebApplication app = builder.Build();
-app.MapOpenApi();
 
+
+app.UseCors("Frontend");    
+app.MapOpenApi();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+app.MapControllers().RequireCors("Frontend");
 app.MapApi();
 
 

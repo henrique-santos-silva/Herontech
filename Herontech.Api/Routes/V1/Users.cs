@@ -32,7 +32,7 @@ public static class Users
 
         string email = req.Email.Trim().ToLowerInvariant();
 
-        bool exists = await db.Users.AnyAsync(u => u.Email == email, ct);
+        bool exists = await db.Set<User>().AnyAsync(u => u.Email == email, ct);
         if (exists) return Results.Conflict("Usuário já existe.");
 
         (byte[] salt, byte[] hash) = PasswordHasher.HashPassword(req.Password);
@@ -46,7 +46,7 @@ public static class Users
             IsActive = true
         };
 
-        db.Users.Add(u);
+        db.Set<User>().Add(u);
         await db.SaveChangesAsync(ct);
 
         UserDto dto = new UserDto(u.Id, u.Email, u.IsActive, u.IsEmailConfirmed);
@@ -64,7 +64,7 @@ public static class Users
 
         string email = req.Email.Trim().ToLowerInvariant();
 
-        bool exists = await db.Users.AnyAsync(cancellationToken: ct);
+        bool exists = await db.Set<User>().AnyAsync(cancellationToken: ct);
         if (exists) return Results.Conflict("Já Existem Usuários na Base");
 
         (byte[] salt, byte[] hash) = PasswordHasher.HashPassword(req.Password);
@@ -79,7 +79,7 @@ public static class Users
             IsActive = true
         };
 
-        db.Users.Add(u);
+        db.Set<User>().Add(u);
         await db.SaveChangesAsync(ct);
 
         UserDto dto = new UserDto(u.Id, u.Email, u.IsActive, u.IsEmailConfirmed);
@@ -97,7 +97,7 @@ public static class Users
 
         string email = req.Email.Trim().ToLowerInvariant();
 
-        bool exists = await db.Users.AnyAsync(u => u.Email == email, ct);
+        bool exists = await db.Set<User>().AnyAsync(u => u.Email == email, ct);
         if (exists) return Results.Conflict("Usuário já existe.");
 
         (byte[] salt, byte[] hash) = PasswordHasher.HashPassword(req.Password);
@@ -111,7 +111,7 @@ public static class Users
             IsActive = req.IsActive
         };
 
-        db.Users.Add(u);
+        db.Set<User>().Add(u);
         await db.SaveChangesAsync(ct);
 
         UserDto dto = new UserDto(u.Id,  u.Email, u.IsActive, u.IsEmailConfirmed);
