@@ -29,6 +29,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Herontech.Application\Herontech.Application.csproj" />
       <ProjectReference Include="..\Herontech.Infrastructure\Herontech.Infrastructure.csproj" />
+      <ProjectReference Include="..\TriStateNullable\TriStateNullable.csproj" />
     </ItemGroup>
 
 </Project>

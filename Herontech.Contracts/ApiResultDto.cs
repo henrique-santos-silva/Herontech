@@ -13,7 +13,7 @@ public record IdDto(Guid Id);
 public class ApiResultDto<T>
 {
     [JsonIgnore] public HttpStatusCode StatusCode { get; set; }
-    public bool Success { get; set; }
+    public bool Success => (int) StatusCode >= 200 && (int)StatusCode <= 299;
     public T? Data { get; set; }
     public ApiResultError? Error { get; set; }
 
@@ -23,7 +23,6 @@ public class ApiResultDto<T>
         return new ApiResultDto<U>()
         {
             StatusCode = StatusCode,
-            Success = Success,
             Data = default(U),
             Error = Error
         };
@@ -35,15 +34,27 @@ public class ApiResultDto<T>
         return new ApiResultVoid()
         {
             StatusCode = StatusCode,
-            Success = Success,
             Error = Error
         };
     }
+    
 }
 
 public class ApiResultVoid
 {
     [JsonIgnore] public HttpStatusCode StatusCode { get; set; }
-    public bool Success { get; set; }
+    public bool Success => (int) StatusCode >= 200 && (int)StatusCode <= 299;
+
     public ApiResultError? Error { get; set; }
+    
+    public ApiResultDto<U> IntoError<U>()
+    {
+        if (Success) throw new InvalidOperationException("Cannot cast api result error");
+        return new ApiResultDto<U>()
+        {
+            StatusCode = StatusCode,
+            Data = default(U),
+            Error = Error
+        };
+    }
 }

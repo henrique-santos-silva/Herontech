@@ -1,4 +1,6 @@
 using Herontech.Api.AuthConfig;
+using Herontech.Contracts.Dtos;
+using Herontech.Contracts.Interfaces;
 using Herontech.Domain;
 using Herontech.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
@@ -11,55 +13,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Herontech.Api.ODataControllers;
 
-[Route("odata/[controller]")]
-public sealed class ContactsController(AppDbContext db) : ODataController
-{
-    public AppDbContext Db => db;
-    
-    [EnableQuery(PageSize = 50)]
-    [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
-    public IQueryable<Contact> Get() => db.Set<Contact>().AsNoTracking();
 
-    [EnableQuery]
-    [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
-    public SingleResult<Contact> Get([FromRoute] Guid key) => SingleResult.Create(
-        db.Set<Contact>().AsNoTracking().Where(c => c.Id == key)
-    );
-
-    [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
-    public async Task<IActionResult> Post([FromBody] Contact input, CancellationToken ct)
-    {
-        if (input is null) return BadRequest();
-        input.BaseEntityDefaults();
-        db.Set<Contact>().Add(input);
-        await db.SaveChangesAsync(ct);
-        return Created(input);
-    }
-    
-    [Authorize(Policy = AuthorizationPolicies.EmployeeOrHigher)]
-    public async Task<IActionResult> Patch([FromRoute] Guid key, [FromBody] Delta<Contact> delta, CancellationToken ct)
-    {
-        if (delta is null) return BadRequest();
-
-        var entity = await db.Set<Contact>().FirstOrDefaultAsync(p => p.Id == key, ct);
-        if (entity is null) return NotFound();
-
-        var backup = entity.BackupBaseEntity();
-        delta.Patch(entity);
-        backup.RestoreBaseEntityBackup(entity);
-        
-        await db.SaveChangesAsync(ct);
-        return Updated(entity);
-    }
-    
-    [Authorize(Policy = AuthorizationPolicies.SysAdminOnly)]
-    public async Task<IActionResult> Delete([FromRoute] Guid key, CancellationToken ct)
-    {
-        var entity = await db.Set<Contact>().FirstOrDefaultAsync(p => p.Id == key, ct);
-        if (entity is null) return NotFound();
-
-        db.Set<Contact>().Remove(entity);
-        await db.SaveChangesAsync(ct);
-        return NoContent();
-    }
-}
+// public sealed class ContactsController 
+//     : CrudODataController<Contact, PostClientDto, PatchClientDto>
+// {
+//     public ContactsController(AppDbContext db, ICrudService<Contact> svc, IAuthorizationService authz) 
+//         : base(db, svc, authz) {}
+//
+// }

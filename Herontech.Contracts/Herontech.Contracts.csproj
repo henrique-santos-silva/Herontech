@@ -8,6 +8,7 @@
     
     <ItemGroup>
       <ProjectReference Include="..\Herontech.Domain\Herontech.Domain.csproj" />
+      <ProjectReference Include="..\TriStateNullable\TriStateNullable.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,17 +1,21 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Asp.Versioning;
 using Herontech.Api.AuthConfig;
+using Herontech.Api.DependencyInjection;
 using Herontech.Api.Routes;
 using Herontech.Application;
 using Herontech.Application.Security;
 using Herontech.Contracts.Interfaces;
 using Herontech.Domain;
 using Herontech.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
+using TriStateNullable;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -30,11 +34,24 @@ static IEdmModel GetEdmModel()
     b.EntitySet<Contact>("Contacts");
     return b.GetEdmModel();
 }
-builder.Services.AddControllers().AddOData(opt =>
-{
-    opt.EnableQueryFeatures(maxTopValue: 100).AddRouteComponents("odata", GetEdmModel());
-});
+builder.Services
+    .AddControllers()
+    .AddOData(opt =>
+    {
+        opt.EnableQueryFeatures(maxTopValue: 100).AddRouteComponents("odata", GetEdmModel());
+    }).AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.Converters.Add(new TriStateNullableJsonConverterFactory());
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+    });
 
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = null;
+    options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
+    options.SerializerOptions.Converters.Add(new TriStateNullableJsonConverterFactory());
+});
 builder.Services.AddJwtConfig(builder.Configuration);
 builder.Services.AddAuthorizationPolicies();
 
@@ -79,9 +96,10 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 });
 builder.Services.AddHttpContextAccessor();
 builder.Services
-    .AddScoped<ITokenService,TokenService>()
-    .AddScoped<IRefreshTokenService,RefreshTokenService>()
-    .AddScoped<ICurrentUserService, CurrentUserService>();
+    .AddScoped<ITokenService, TokenService>()
+    .AddScoped<IRefreshTokenService, RefreshTokenService>()
+    .AddScoped<ICurrentUserService, CurrentUserService>()
+    .AddCrudServices();
 
 builder.Services.AddAuthorization();
 
